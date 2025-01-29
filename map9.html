@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Map of India</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #f4f7fc;
+      margin: 0;
+      padding: 0;
+      color: #343a40;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-top: 20px;
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    /* Map Container */
+    #map {
+      height: 70vh;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 1200px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    /* State Details Section */
+    #state-details {
+      margin: 20px auto;
+      width: 90%;
+      max-width: 800px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      color: #495057;
+    }
+
+    #state-details.hidden {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    #state-details img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      color: #007bff;
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    h4 {
+      color: #343a40;
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      position: relative;
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+
+    li::before {
+      content: "•";
+      color: #007bff;
+      font-size: 1.2rem;
+      position: absolute;
+      left: 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 30px;
+      background-color: #007bff;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 25px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Form Styles */
+    form {
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+    }
+
+    form input, form select, form textarea, form button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    form button {
+      background-color: #007bff;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      #map {
+        height: 60vh;
+      }
+
+      #state-details {
+        padding: 15px;
+      }
+
+      form {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Explore India: Interactive Map with State Details</h1>
+
+  <!-- Map Section -->
+  <div id="map"></div>
+
+  <!-- State Details -->
+  <div id="state-details" class="hidden">
+    <p>Select a state from the map to view its details...</p>
+  </div>
+
+  <!-- Form Section -->
+  <form id="tripForm">
+    <h3>Plan Your Trip</h3>
+    <label for="name">Name:</label>
+    <input type="text" id="name" placeholder="Your Name" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" placeholder="Your Email" required>
+
+    <label for="state">Choose a State:</label>
+    <select id="state" required>
+      <option value="">Select a State</option>
+      <option value="Uttar Pradesh">Uttar Pradesh</option>
+      <option value="Maharashtra">Maharashtra</option>
+      <option value="Tamil Nadu">Tamil Nadu</option>
+      <option value="Karnataka">Karnataka</option>
+      <option value="West Bengal">West Bengal</option>
+    </select>
+
+    <label for="source">Source (From):</label>
+    <input type="text" id="source" placeholder="Enter source location" required>
+
+    <label for="toDate">To Date:</label>
+    <input type="date" id="toDate" required>
+
+    <label for="fromDate">From Date:</label>
+    <input type="date" id="fromDate" required>
+
+    <label for="mode">Mode of Transport:</label>
+    <select id="mode" required>
+      <option value="">Select Transport</option>
+      <option value="Air">Air</option>
+      <option value="Train">Train</option>
+      <option value="Bus">Bus</option>
+      <option value="Car">Car</option>
+    </select>
+
+    <label for="message">Additional Notes:</label>
+    <textarea id="message" placeholder="Any additional requests or notes..." rows="4"></textarea>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="tripDetails" class="hidden">
+    <h3>Estimated Trip Cost & Itinerary</h3>
+    <p><strong>Estimated Cost:</strong> ₹ <span id="cost">0</span></p>
+    <h4>Itinerary:</h4>
+    <ul id="itineraryList"></ul>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize the map
+    const map = L.map('map', {
+      center: [20.5937, 78.9629],
+      zoom: 5,
+      maxBounds: [
+        [6.4620, 68.1766], // Southwest
+        [35.5133, 97.3954] // Northeast
+      ]
+    });
+
+    // Add an overlay for India map
+    const bounds = [
+      [6.4620, 68.1766],
+      [35.5133, 97.3954]
+    ];
+    const indiaMapUrl = "./images/map.jpg"; // Map image URL
+    L.imageOverlay(indiaMapUrl, bounds).addTo(map);
+
+    // State data
+    const states = [
+      {
+        name: "Uttar Pradesh",
+        capital: "Lucknow",
+        lat: 26.8467,
+        lon: 80.9462,
+        languages: "Hindi, Urdu",
+        famousPlace: "Taj Mahal (Agra)",
+        description: "Explore the rich Mughal heritage, including the Taj Mahal, a UNESCO World Heritage site and a symbol of eternal love.",
+        image: "./images/tajmahal1.jpg",
+        souvenirs: ["Chikankari embroidery", "Zardozi art"],
+        ecoTourism: ["Katerniaghat Wildlife Sanctuary", "Dudhwa National Park"],
+        sustainability: "Uttar Pradesh promotes eco-friendly tourism with wildlife reserves and sustainable handloom industries.",
+        guides: ["Heritage walks in Agra", "Local storytellers at Fatehpur Sikri"],
+        transportation: "Well-connected by rail, road, and air. Try local cycle rickshaws for short distances.",
+        pilgrimageRoutes: ["Kashi Vishwanath Temple (Varanasi)", "Tirupati Balaji (for South Indians)"],
+        adventureSports: ["River rafting in Rishikesh", "Trekking in Rajaji National Park"],
+        nearbyFacilities: ["Hotels near Taj Mahal", "Local markets in Agra"],
+        localCulture: ["Traditional Kathak dance", "Rural craft workshops in Varanasi"],
+        itinerary: [
+          "Day 1: Visit Taj Mahal, Fatehpur Sikri",
+          "Day 2: Explore Agra Fort and local markets",
+          "Day 3: Visit Katerniaghat Wildlife Sanctuary"
+        ]
+      }
+    ];
+
+    // Function to calculate the trip cost based on transport mode and dates
+    function calculateTripCost(fromDate, toDate, mode) {
+      const days = Math.floor((new Date(toDate) - new Date(fromDate)) / (1000 * 3600 * 24));
+      const costPerDay = {
+        "Air": 5000,
+        "Train": 1500,
+        "Bus": 1000,
+        "Car": 3000
+      };
+
+      const baseCost = costPerDay[mode] * days;
+      return baseCost;
+    }
+
+    // Form submit handler
+    document.getElementById('tripForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      // Get form values
+      const state = document.getElementById('state').value;
+      const source = document.getElementById('source').value;
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const mode = document.getElementById('mode').value;
+
+      // Get the state object
+      const selectedState = states.find(s => s.name === state);
+
+      // Calculate cost
+      const tripCost = calculateTripCost(fromDate, toDate, mode);
+
+      // Display cost and itinerary
+      document.getElementById('cost').innerText = tripCost;
+      document.getElementById('itineraryList').innerHTML = selectedState.itinerary.map(item => `<li>${item}</li>`).join('');
+
+      // Show the trip details section
+      document.getElementById('tripDetails').classList.remove('hidden');
+    });
+
+    // Map marker and display functionality
+    function showStateDetails(state) {
+      const detailsDiv = document.getElementById('state-details');
+      detailsDiv.innerHTML = `
+        <h3>${state.name}</h3>
+        <img src="${state.image}" alt="${state.name}" />
+        <p><strong>Capital:</strong> ${state.capital}</p>
+        <p><strong>Languages:</strong> ${state.languages}</p>
+        <p><strong>Famous Place:</strong> ${state.famousPlace}</p>
+        <p>${state.description}</p>
+
+        <h4>Souvenirs:</h4>
+        <ul>${state.souvenirs.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <h4>Eco-Tourism Spots:</h4>
+        <ul>${state.ecoTourism.map(item => `<li>${item}</li>`).join('')}</ul>
+        
+        <p><strong>Sustainability Efforts:</strong> ${state.sustainability}</p>
+
+        <h4>Guides:</h4>
+        <ul>${state.guides.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <p><strong>Transportation:</strong> ${state.transportation}</p>
+
+        <h4>Pilgrimage Routes:</h4>
+        <ul>${state.pilgrimageRoutes.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <h4>Adventure Sports:</h4>
+        <ul>${state.adventureSports.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <h4>Nearby Facilities:</h4>
+        <ul>${state.nearbyFacilities.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <h4>Local Culture:</h4>
+        <ul>${state.localCulture.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <h4>Itinerary:</h4>
+        <ul>${state.itinerary.map(item => `<li>${item}</li>`).join('')}</ul>
+
+        <a href="#" class="btn">Plan Your Trip</a>
+      `;
+      detailsDiv.classList.remove('hidden');
+    }
+
+    // Add markers for states
+    states.forEach(state => {
+      const marker = L.marker([state.lat, state.lon]).addTo(map);
+      marker.on('click', () => showStateDetails(state));
+    });
+  </script>
+
+</body>
+</html>
+
+

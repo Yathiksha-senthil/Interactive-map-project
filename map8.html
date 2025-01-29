@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Itinerary Planner with Cost Estimation</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #f4f7fc;
+      margin: 0;
+      padding: 0;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-top: 20px;
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    #form-container {
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    #form-container label {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    #form-container input, #form-container select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    #form-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #form-container button:hover {
+      background-color: #0056b3;
+    }
+
+    #itinerary-details {
+      margin: 30px auto;
+      width: 90%;
+      max-width: 700px;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      color: #495057;
+      display: none;
+      font-size: 1.1rem;
+    }
+
+    h3 {
+      color: #007bff;
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    h4 {
+      color: #343a40;
+      font-size: 1.3rem;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      position: relative;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+    }
+
+    li::before {
+      content: "•";
+      color: #007bff;
+      font-size: 1.5rem;
+      position: absolute;
+      left: -18px;
+      top: 0;
+    }
+
+    .cost-breakdown {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+      font-size: 1.2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 30px;
+      background-color: #007bff;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 25px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      #form-container, #itinerary-details {
+        width: 95%;
+        padding: 20px;
+      }
+
+      h3 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Plan Your Trip with Cost Estimation</h1>
+
+  <div id="form-container">
+    <form id="itinerary-form">
+      <label for="source">Source City:</label>
+      <input type="text" id="source" placeholder="Enter source city" required>
+
+      <label for="destination">Destination City:</label>
+      <input type="text" id="destination" placeholder="Enter destination city" required>
+
+      <label for="from-date">From Date:</label>
+      <input type="date" id="from-date" required>
+
+      <label for="to-date">To Date:</label>
+      <input type="date" id="to-date" required>
+
+      <label for="transport">Mode of Transport:</label>
+      <select id="transport" required>
+        <option value="">Select Mode</option>
+        <option value="plane">Plane</option>
+        <option value="train">Train</option>
+        <option value="bus">Bus</option>
+        <option value="car">Car</option>
+      </select>
+
+      <button type="submit">Generate Itinerary</button>
+    </form>
+  </div>
+
+  <div id="itinerary-details">
+    <h3>Your Trip Itinerary</h3>
+    <p><strong>Source:</strong> <span id="display-source"></span></p>
+    <p><strong>Destination:</strong> <span id="display-destination"></span></p>
+    <p><strong>Travel Dates:</strong> <span id="display-dates"></span></p>
+
+    <h4>Suggested Itinerary:</h4>
+    <ul id="itinerary-list">
+      <li>Day 1: Depart from <span id="itinerary-source"></span> to <span id="itinerary-destination"></span></li>
+      <li>Day 2: Explore the major attractions in <span id="itinerary-destination"></span></li>
+      <li>Day 3: Relax at a local park or tourist spot</li>
+      <li>Day 4: Return from <span id="itinerary-destination"></span> to <span id="itinerary-source"></span></li>
+    </ul>
+
+    <div class="cost-breakdown">
+      <h4>Estimated Cost Breakdown:</h4>
+      <p><strong>Transport Cost:</strong> ₹<span id="transport-cost"></span></p>
+      <p><strong>Accommodation (per night):</strong> ₹<span id="accommodation-cost"></span></p>
+      <p><strong>Meals (per day):</strong> ₹<span id="meals-cost"></span></p>
+      <h4>Total Cost: ₹<span id="total-cost"></span></h4>
+    </div>
+
+    <a href="javascript:void(0);" class="btn" onclick="resetForm()">Reset Plan</a>
+  </div>
+
+  <script>
+    // Cost estimation
+    const transportCost = {
+      plane: 5000,
+      train: 1500,
+      bus: 800,
+      car: 3000
+    };
+
+    const accommodationCostPerNight = 2000;
+    const mealsCostPerDay = 800;
+
+    document.getElementById('itinerary-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Get input values
+      const source = document.getElementById('source').value;
+      const destination = document.getElementById('destination').value;
+      const fromDate = new Date(document.getElementById('from-date').value);
+      const toDate = new Date(document.getElementById('to-date').value);
+      const transport = document.getElementById('transport').value;
+
+      // Calculate number of days of travel
+      const numberOfDays = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24)) + 1;
+
+      // Calculate costs
+      const transportCostTotal = transportCost[transport] * 2; // Round trip
+      const accommodationCostTotal = accommodationCostPerNight * numberOfDays;
+      const mealsCostTotal = mealsCostPerDay * numberOfDays;
+
+      const totalCost = transportCostTotal + accommodationCostTotal + mealsCostTotal;
+
+      // Display itinerary and cost
+      document.getElementById('display-source').textContent = source;
+      document.getElementById('display-destination').textContent = destination;
+      document.getElementById('display-dates').textContent = `${fromDate.toLocaleDateString()} to ${toDate.toLocaleDateString()}`;
+      document.getElementById('itinerary-source').textContent = source;
+      document.getElementById('itinerary-destination').textContent = destination;
+
+      document.getElementById('transport-cost').textContent = transportCostTotal;
+      document.getElementById('accommodation-cost').textContent = accommodationCostPerNight;
+      document.getElementById('meals-cost').textContent = mealsCostPerDay;
+      document.getElementById('total-cost').textContent = totalCost;
+
+      // Show itinerary details
+      document.getElementById('itinerary-details').style.display = 'block';
+    });
+
+    // Reset form
+    function resetForm() {
+      document.getElementById('itinerary-form').reset();
+      document.getElementById('itinerary-details').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
+
+
+
+ 
+
+
+
+
+
+
+

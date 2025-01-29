@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Map of India</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #f4f7fc;
+      margin: 0;
+      padding: 0;
+      color: #343a40;
+      line-height: 1.6;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-top: 30px;
+      font-size: 3rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Map Container */
+    #map {
+      height: 70vh;
+      margin: 30px auto;
+      width: 90%;
+      max-width: 1200px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      border: 2px solid #ccc;
+    }
+
+    /* State Details Section */
+    #state-details {
+      margin: 30px auto;
+      width: 90%;
+      max-width: 1000px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      color: #495057;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    #state-details.hidden {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    #state-details img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      color: #007bff;
+      font-size: 2.2rem;
+      margin-bottom: 15px;
+    }
+
+    h4 {
+      color: #343a40;
+      font-size: 1.3rem;
+      margin-top: 20px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      position: relative;
+      margin-bottom: 12px;
+      padding-left: 20px;
+    }
+
+    li::before {
+      content: "•";
+      color: #007bff;
+      font-size: 1.4rem;
+      position: absolute;
+      left: 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 35px;
+      background-color: #007bff;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 30px;
+      transition: background-color 0.3s ease;
+      font-size: 1.2rem;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Form Styles */
+    form {
+      margin: 30px auto;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      border: 2px solid #ccc;
+    }
+
+    form input, form select, form button {
+      width: 100%;
+      padding: 12px;
+      margin: 12px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      box-sizing: border-box;
+    }
+
+    form button {
+      background-color: #007bff;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    form button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      #map {
+        height: 60vh;
+      }
+
+      #state-details {
+        padding: 20px;
+      }
+
+      form {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Explore India: Interactive Map with State Details</h1>
+
+  <!-- Map Section -->
+  <div id="map"></div>
+
+  <!-- State Details -->
+  <div id="state-details" class="hidden">
+    <p>Select a state from the map to view its details...</p>
+  </div>
+
+  <!-- Form Section -->
+  <form id="tripForm">
+    <h3>Plan Your Trip</h3>
+    <label for="name">Name:</label>
+    <input type="text" id="name" placeholder="Your Name" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" placeholder="Your Email" required>
+
+    <label for="state">Choose a State:</label>
+    <select id="state" required>
+      <option value="">Select a State</option>
+      <option value="Uttar Pradesh">Uttar Pradesh</option>
+      <option value="Maharashtra">Maharashtra</option>
+      <option value="Tamil Nadu">Tamil Nadu</option>
+      <option value="Karnataka">Karnataka</option>
+      <option value="West Bengal">West Bengal</option>
+    </select>
+
+    <label for="source">Source (From):</label>
+    <input type="text" id="source" placeholder="Enter source location" required>
+
+    <label for="fromDate">From Date:</label>
+    <input type="date" id="fromDate" required>
+
+    <label for="toDate">To Date:</label>
+    <input type="date" id="toDate" required>
+
+    <label for="mode">Mode of Transport:</label>
+    <select id="mode" required>
+      <option value="">Select Transport</option>
+      <option value="Air">Air</option>
+      <option value="Train">Train</option>
+      <option value="Bus">Bus</option>
+      <option value="Car">Car</option>
+    </select>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="tripDetails" class="hidden">
+    <h3>Estimated Trip Cost & Itinerary</h3>
+    <p><strong>Estimated Cost:</strong> ₹ <span id="cost">0</span></p>
+    <h4>Itinerary:</h4>
+    <ul id="itineraryList"></ul>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+  <script>
+    // Initialize the map
+    const map = L.map('map', {
+      center: [20.5937, 78.9629],
+      zoom: 5,
+      maxBounds: [
+        [6.4620, 68.1766], // Southwest
+        [35.5133, 97.3954] // Northeast
+      ]
+    });
+
+    // Add an overlay for India map
+    const bounds = [
+      [6.4620, 68.1766],
+      [35.5133, 97.3954]
+    ];
+    const indiaMapUrl = "./images/map.jpg"; // Map image URL
+    L.imageOverlay(indiaMapUrl, bounds).addTo(map);
+
+    // State data
+    const states = [
+      {
+        name: "Uttar Pradesh",
+        capital: "Lucknow",
+        lat: 26.8467,
+        lon: 80.9462,
+        languages: "Hindi, Urdu",
+        famousPlace: "Taj Mahal (Agra)",
+        description: "Explore the rich Mughal heritage, including the Taj Mahal, a UNESCO World Heritage site and a symbol of eternal love.",
+        image: "./images/tajmahal1.jpg",
+        souvenirs: ["Chikankari embroidery", "Zardozi art"],
+        ecoTourism: ["Katerniaghat Wildlife Sanctuary", "Dudhwa National Park"],
+        sustainability: "Uttar Pradesh promotes eco-friendly tourism with wildlife reserves and sustainable handloom industries.",
+        guides: ["Heritage walks in Agra", "Local storytellers at Fatehpur Sikri"],
+        transportation: "Well-connected by rail, road, and air. Try local cycle rickshaws for short distances.",
+        pilgrimageRoutes: ["Kashi Vishwanath Temple (Varanasi)", "Tirupati Balaji (for South Indians)"],
+        adventureSports: ["River rafting in Rishikesh", "Trekking in Rajaji National Park"],
+        nearbyFacilities: ["Hotels near Taj Mahal", "Local markets in Agra"],
+        localCulture: ["Traditional Kathak dance", "Rural craft workshops in Varanasi"],
+        itinerary: [
+          "Day 1: Visit Taj Mahal, Fatehpur Sikri",
+          "Day 2: Explore Agra Fort and local markets",
+          "Day 3: Visit Katerniaghat Wildlife Sanctuary"
+        ]
+      },
+      {
+        name: "Maharashtra",
+        capital: "Mumbai",
+        lat: 19.7515,
+        lon: 75.7139,
+        languages: "Marathi, Hindi, English",
+        famousPlace: "Gateway of India (Mumbai)",
+        description: "Maharashtra is a state with a vibrant cultural heritage and historical landmarks, including the famous Gateway of India and the Ajanta Caves.",
+        image: "./images/gatway1.jpg",
+        souvenirs: ["Kolhapuri chappals", "Warli paintings"],
+        ecoTourism: ["Tadoba National Park", "Sanjay Gandhi National Park"],
+        sustainability: "Maharashtra is actively focusing on sustainable tourism with initiatives like eco-friendly homestays and conservation projects.",
+        guides: ["Walking tours in Mumbai", "Heritage tours in Aurangabad"],
+        transportation: "Maharashtra has extensive public transport options like the Mumbai Metro, buses, and trains.",
+        pilgrimageRoutes: ["Shirdi Sai Baba Temple", "Trimbakeshwar Temple"],
+        adventureSports: ["Trekking in Sahyadri", "Paragliding in Kamshet"],
+        nearbyFacilities: ["Hotels near Gateway of India", "Resorts in Lonavala"],
+        localCulture: ["Lavani dance", "Marathi folk music"],
+        itinerary: [
+          "Day 1: Visit Gateway of India, Colaba",
+          "Day 2: Explore Ajanta Caves and Ellora Caves",
+          "Day 3: Visit Sanjay Gandhi National Park"
+        ]
+      },
+      {
+        name: "Tamil Nadu",
+        capital: "Chennai",
+        lat: 13.0827,
+        lon: 80.2707,
+        languages: "Tamil, English, Hindi",
+        famousPlace: "Meenakshi Temple (Madurai)",
+        description: "Tamil Nadu is a treasure trove of temples, culture, and art, known for its rich Dravidian architecture and coastal beauty.",
+        image: "./images/meenakshi.jpg",
+        souvenirs: ["Tanjore paintings", "Silk sarees"],
+        ecoTourism: ["Kalakkadu Tiger Reserve", "Silent Valley National Park"],
+        sustainability: "Tamil Nadu focuses on sustainable tourism, such as eco-friendly accommodations and temple conservation efforts.",
+        guides: ["Temple tours in Madurai", "Eco-tourism guides in Nilgiris"],
+        transportation: "Tamil Nadu is well-connected by train and buses, with major airports in Chennai and Coimbatore.",
+        pilgrimageRoutes: ["Meenakshi Temple", "Brihadeeswarar Temple"],
+        adventureSports: ["Snorkeling in Kanyakumari", "Hiking in Nilgiris"],
+        nearbyFacilities: ["Resorts near Ooty", "Hotels in Chennai"],
+        localCulture: ["Bharatanatyam dance", "Carnatic music concerts"],
+        itinerary: [
+          "Day 1: Visit Meenakshi Temple",
+          "Day 2: Explore Brihadeeswarar Temple and Tanjore Palace",
+          "Day 3: Go trekking in Agasthyakoodam"
+        ]
+      },
+      {
+        name: "Karnataka",
+        capital: "Bengaluru",
+        lat: 12.9716,
+        lon: 77.5946,
+        languages: "Kannada, Hindi, English",
+        famousPlace: "Bengaluru Palace",
+        description: "Karnataka is known for its diverse culture, scenic landscapes, and historical landmarks, such as the Bengaluru Palace and Hampi ruins.",
+        image: "./images/palace.jpg",
+        souvenirs: ["Sandalwood products", "Channapatna toys"],
+        ecoTourism: ["Bandipur National Park", "Coorg's coffee plantations"],
+        sustainability: "The state is promoting eco-friendly practices, especially in the tourism and coffee industries.",
+        guides: ["City tours in Bengaluru", "Cultural guides in Hampi"],
+        transportation: "Easily accessible by flight, train, and bus. Rent a car for exploring the coffee estates.",
+        pilgrimageRoutes: ["Sri Chamarajendra Park", "Shravanabelagola"],
+        adventureSports: ["Camping in Coorg", "White-water rafting in Dandeli"],
+        nearbyFacilities: ["Hotels near Bengaluru Palace", "Resorts in Coorg"],
+        localCulture: ["Karnataka folk music", "Kudremukh trekking groups"],
+        itinerary: [
+          "Day 1: Visit Bengaluru Palace and local attractions",
+          "Day 2: Explore Hampi ruins and local markets",
+          "Day 3: Trekking in Coorg"
+        ]
+      },
+      {
+        name: "West Bengal",
+        capital: "Kolkata",
+        lat: 22.5726,
+        lon: 88.3639,
+        languages: "Bengali, Hindi, English",
+        famousPlace: "Victoria Memorial (Kolkata)",
+        description: "West Bengal is famous for its cultural heritage, iconic landmarks like the Victoria Memorial, and the scenic Sundarbans.",
+        image: "./images/victoria.jpg",
+        souvenirs: ["Madhubani paintings", "Baluchari sarees"],
+        ecoTourism: ["Sundarbans National Park", "Dooars region"],
+        sustainability: "The state focuses on preserving its natural habitats, including the Sundarbans tiger reserve and mangroves.",
+        guides: ["Kolkata heritage walks", "River tours in Sundarbans"],
+        transportation: "Extensive public transport network in Kolkata, including trams, metro, and ferries.",
+        pilgrimageRoutes: ["Dakshineswar Kali Temple", "Kalighat Temple"],
+        adventureSports: ["Sundarbans boat safari", "Trekking in Darjeeling"],
+        nearbyFacilities: ["Hotels near Victoria Memorial", "Sundarbans eco-lodges"],
+        localCulture: ["Bengali theatre", "Traditional Durga Puja celebrations"],
+        itinerary: [
+          "Day 1: Visit Victoria Memorial and local markets",
+          "Day 2: Explore Sundarbans and local villages",
+          "Day 3: Attend a traditional Bengali cultural performance"
+        ]
+      }
+    ];
+
+
+    // Show State Details
+    function showStateDetails(state) {
+      const detailsDiv = document.getElementById('state-details');
+      detailsDiv.innerHTML = `
+        <h3>${state.name}</h3>
+        <img src="${state.image}" alt="${state.name}">
+        <p><strong>Capital:</strong> ${state.capital}</p>
+        <p><strong>Famous Place:</strong> ${state.famousPlace}</p>
+        <p>${state.description}</p>
+        <h4>Languages Spoken:</h4>
+        <p>${state.languages}</p>
+
+        <h4>Souvenirs:</h4>
+        <ul>${state.souvenirs.map(s => `<li>${s}</li>`).join('')}</ul>
+
+        <h4>Eco-Tourism Spots:</h4>
+        <ul>${state.ecoTourism.map(s => `<li>${s}</li>`).join('')}</ul>
+
+        <h4>Sustainability Initiatives:</h4>
+        <p>${state.sustainability}</p>
+
+        <h4>Guided Tours:</h4>
+        <ul>${state.guides.map(g => `<li>${g}</li>`).join('')}</ul>
+
+        <h4>Transportation:</h4>
+        <p>${state.transportation}</p>
+
+        <h4>Pilgrimage Routes:</h4>
+        <ul>${state.pilgrimageRoutes.map(p => `<li>${p}</li>`).join('')}</ul>
+
+        <h4>Adventure Sports:</h4>
+        <ul>${state.adventureSports.map(a => `<li>${a}</li>`).join('')}</ul>
+
+        <h4>Nearby Facilities:</h4>
+        <ul>${state.nearbyFacilities.map(f => `<li>${f}</li>`).join('')}</ul>
+
+        <h4>Local Culture:</h4>
+        <ul>${state.localCulture.map(c => `<li>${c}</li>`).join('')}</ul>
+
+        <h4>Suggested Itinerary:</h4>
+        <ul>${state.itinerary.map(i => `<li>${i}</li>`).join('')}</ul>
+      `;
+      detailsDiv.classList.remove('hidden');
+    }
+
+    // Add state markers to the map
+    states.forEach(state => {
+      const marker = L.marker([state.lat, state.lon]).addTo(map);
+      marker.bindPopup(`<b>${state.name}</b>`).on('click', () => showStateDetails(state));
+    });
+
+    // Handle form submission
+    document.getElementById('tripForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const state = document.getElementById('state').value;
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      const mode = document.getElementById('mode').value;
+
+      let cost = 0;
+      let itinerary = [];
+
+      if (state === "Uttar Pradesh") {
+        cost = 20000;
+        itinerary = [
+          "Day 1: Visit Taj Mahal, Fatehpur Sikri",
+          "Day 2: Explore Agra Fort and local markets",
+          "Day 3: Visit Katerniaghat Wildlife Sanctuary"
+        ];
+      } else if (state === "Maharashtra") {
+        cost = 25000;
+        itinerary = [
+          "Day 1: Visit Gateway of India, Colaba",
+          "Day 2: Explore Ajanta Caves and Ellora Caves",
+          "Day 3: Visit Sanjay Gandhi National Park"
+        ];
+      } else if (state === "Tamil Nadu") {
+        cost = 15000;
+        itinerary = [
+          "Day 1: Visit Meenakshi Temple",
+          "Day 2: Explore Brihadeeswarar Temple and Tanjore Palace",
+          "Day 3: Go trekking in Agasthyakoodam"
+        ];
+      } else if (state === "Karnataka") {
+        cost = 18000;
+        itinerary = [
+          "Day 1: Visit Chichen Mahal and Cubbon Park",
+          "Day 2: Explore Hampi ruins",
+          "Day 3: Trekking in Nandi Hills"
+        ];
+      } else if (state === "West Bengal") {
+        cost = 22000;
+        itinerary = [
+          "Day 1: Visit Howrah Bridge and Victoria Memorial",
+          "Day 2: Explore Kalighat Temple and local markets",
+          "Day 3: Visit Sundarbans for eco-tourism experience"
+        ];
+      }
+
+      document.getElementById('cost').textContent = cost;
+      const itineraryList = document.getElementById('itineraryList');
+      itineraryList.innerHTML = itinerary.map(item => `<li>${item}</li>`).join('');
+
+      document.getElementById('tripDetails').classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

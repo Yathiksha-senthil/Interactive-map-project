@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Map of India with State Information and Clear Images</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <style>
+    #map { height: 600px; }
+    .state-img {
+      width: 300px;
+      height: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Interactive Map of India with State Information and Clear Images</h1>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script>
+    // Initialize the map, focus on India
+    var map = L.map('map').setView([20.5937, 78.9629], 5);  // Coordinates for India
+
+    // Limit the map to India's bounds
+    var bounds = [
+      [6.4620, 68.1766],  // Southwest corner of India (latitude, longitude)
+      [35.5133, 97.3954]  // Northeast corner of India (latitude, longitude)
+    ];
+    map.setMaxBounds(bounds);
+
+    // Add tile layer to the map (OpenStreetMap in this case)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Initialize MarkerClusterGroup
+    var markers = L.markerClusterGroup();
+
+    // State data with additional information and high-quality images
+    var states = [
+      {
+        name: "Uttar Pradesh",
+        capital: "Lucknow",
+        lat: 26.8467,
+        lon: 80.9462,
+        languages: "Hindi, Urdu",
+        famousPlace: "Taj Mahal (Agra)",
+        description: "Uttar Pradesh is known for its rich history, including the Taj Mahal in Agra, a symbol of love.",
+        image: "./images/tajmahal1.jpg"
+      },
+      {
+        name: "Maharashtra",
+        capital: "Mumbai",
+        lat: 19.0760,
+        lon: 72.8777,
+        languages: "Marathi, Hindi, English",
+        famousPlace: "Gateway of India",
+        description: "Maharashtra is famous for the bustling city of Mumbai, the Gateway of India, and its vibrant cultural heritage.",
+        image: "./images/Gatway1.jpg"
+      },
+      {
+        name: "Karnataka",
+        capital: "Bengaluru",
+
+        lat: 12.9716,
+        lon: 77.5946,
+        languages: "Kannada, Hindi, English",
+        famousPlace: "Bangalore Palace",
+        description: "Karnataka is home to Bengaluru, a hub for the IT industry, and landmarks like the Bangalore Palace.",
+        image: "./images/palace.jpg"
+      },
+      {
+        name: "West Bengal",
+        capital: "Kolkata",
+        lat: 22.5726,
+        lon: 88.3639,
+        languages: "Bengali, Hindi",
+        famousPlace: "Victoria Memorial",
+        description: "West Bengal, with Kolkata as its capital, is known for its colonial architecture and cultural richness.",
+        image: "./images/victoria.jpg"
+      },
+      {
+        name: "Tamil Nadu",
+        capital: "Chennai",
+        lat: 13.0827,
+        lon: 80.2707,
+        languages: "Tamil, English",
+        famousPlace: "Meenakshi Temple (Madurai)",
+        description: "Tamil Nadu is known for its ancient temples and rich culture, with the Meenakshi Temple being a prime attraction.",
+        image: "./images/menakshi1.jpg"
+      },
+      {
+        name: "Delhi",
+        capital: "New Delhi",
+        lat: 28.6139,
+        lon: 77.2090,
+        languages: "Hindi, English",
+        famousPlace: "Red Fort",
+        description: "Delhi, the capital of India, is known for its historical landmarks like the Red Fort and India Gate.",
+        image: "./images/redfort.jpg"
+      }
+    ];
+
+    // Add markers to MarkerClusterGroup
+    states.forEach(function(state) {
+      var popupContent = "<b>" + state.name + "</b><br>" +
+                         "<strong>Capital:</strong> " + state.capital + "<br>" +
+                         "<strong>Languages:</strong> " + state.languages + "<br>" +
+                         "<strong>Famous Place:</strong> " + state.famousPlace + "<br>" +
+                         "<strong>Description:</strong> " + state.description + "<br>" +
+                         "<img src='" + state.image + "' class='state-img' alt='Image of " + state.famousPlace + "'>";
+
+      var marker = L.marker([state.lat, state.lon]).bindPopup(popupContent);
+      markers.addLayer(marker);
+    });
+
+    // Add all markers to the map
+    map.addLayer(markers);
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
